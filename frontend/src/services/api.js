@@ -1,4 +1,5 @@
 const API_BASE_URL = "https://maze-game-pppl.onrender.com/api";
+// const API_BASE_URL = "http://localhost:3000/api";
 
 export const startGame = async (rows, cols) => {
   try {

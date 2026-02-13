@@ -1,6 +1,7 @@
 package api
 
 import (
+	"maze-game/socket"
 	"net/http"
 )
 
@@ -29,6 +30,9 @@ func NewRouter() http.Handler {
 	mux.HandleFunc("POST /api/game/start", StartGameHandler)
 	mux.HandleFunc("POST /api/game/{id}/move", MoveHandler)
 	mux.HandleFunc("POST /api/game/{id}/answer", AnswerHandler)
+
+	// WebSocket endpoint
+	mux.HandleFunc("/ws", socket.WebSocketHandler)
 
 	return EnableCORS(mux)
 }

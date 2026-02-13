@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { startGame, movePlayer, answerQuestion } from '../services/api';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { startGame } from '../services/api';
 
 export const useGame = () => {
     // Game State
@@ -8,121 +8,109 @@ export const useGame = () => {
     const [error, setError] = useState(null);
     
     // UI State
-    const [modalOpen, setModalOpen] = useState(false);
-    const [currentQuestion, setCurrentQuestion] = useState(null);
-    const [message, setMessage] = useState(""); // For small notifications like "Blocked"
+    const [message, setMessage] = useState(""); 
+    
+    const socketRef = useRef(null);
 
     // Initial Start
     const initGame = useCallback(async (rows, cols) => {
         setLoading(true);
         setError(null);
         try {
+            // 1. Start Game via HTTP to get ID and initial state
             const data = await startGame(rows, cols);
             setGameState(data);
+
+            // 2. Connect WebSocket
+            // Determine protocol (ws vs wss) and host
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            // In dev, frontend is 5173, backend is 3000. 
+            // If running strictly locally we might need to point to localhost:3000 explicitly if not proxied.
+            // Assuming localhost:3000 for backend based on previous context.
+            const host = "localhost:3000"; 
+            const wsUrl = `${protocol}//${host}/ws?id=${data.id}`;
+            
+            console.log("Connecting to WS:", wsUrl);
+            const socket = new WebSocket(wsUrl);
+
+            socketRef.current = socket;
+
+            socket.onopen = () => {
+                console.log("WebSocket Connected");
+            };
+
+            socket.onmessage = (event) => {
+                try {
+                    const response = JSON.parse(event.data);
+                    if (response.type === 'update') {
+                         const payload = response.payload;
+                         
+                         // Update State
+                         setGameState(prevState => {
+                             if (!prevState) return null; // Should not happen if initGame ran
+                             
+                             // If full game_state is provided (e.g. game over or special event), use it.
+                             if (payload.game_state) {
+                                 return payload.game_state;
+                             }
+                             
+                             // Otherwise merge partial updates (Player, Status)
+                             return {
+                                 ...prevState,
+                                 player: payload.player || prevState.player,
+                                 status: payload.status || prevState.status
+                             };
+                         });
+                         
+                         // Simple result handling
+                         if (payload.result === "Blocked") {
+                                setMessage("Path Blocked!");
+                                setTimeout(() => setMessage(""), 500);
+                         } else if (payload.result === "Win") {
+                                setMessage("You Won!");
+                         }
+                    } else if (response.type === 'error') {
+                        console.error("WS Error:", response.payload);
+                    }
+                } catch (e) {
+                    console.error("WS Message Parse Error", e);
+                }
+            };
+
+            socket.onclose = () => {
+                console.log("WebSocket Disconnected");
+            };
+            
+            socket.onerror = (err) => {
+                console.error("WebSocket Error:", err);
+            };
+
         } catch (err) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
-    }, [/* No dependencies needed as startGame is imported and setters are stable */]);
+    }, []);
 
-    // Handle Movement
-    const handleMove = useCallback(async (direction) => {
-        if (!gameState || modalOpen || gameState.status !== 'ACTIVE') return;
-
-        try {
-            const result = await movePlayer(gameState.id, direction);
-            
-            // Log result for debugging
-            console.log("Move result:", result);
-
-            // Handle Move Result (Message from backend)
-            // Expecting result to have: { status: "Moved"|"Blocked"|"QuestionFound"|"QuestionWallHit"|"Win", game_state: {...}, question: {...} }
-            // Note: Backend 'MovePlayer' currently only returns string,error. 
-            // We need to update backend to return a full JSON object in handlers.go
-            // Assuming for now the backend handler will be updated to return { result: string, game_state: object, question: object }
-            
-            // Update state if provided
-            if (result.game_state) {
-                setGameState(result.game_state);
-            }
-
-            // Handle events
-            switch (result.result) {
-                case "Blocked":
-                    setMessage("Path Blocked!");
-                    setTimeout(() => setMessage(""), 1000);
-                    break;
-                case "QuestionFound":
-                    // Trigger Question Modal
-                    // Question data should be in response
-                    if (result.question) {
-                        setCurrentQuestion(result.question);
-                        setModalOpen(true);
-                    }
-                    else {
-                        // Fallback purely for dev if backend isn't perfect yet
-                        console.warn("QuestionFound but no question data sent.");
-                    }
-                    break;
-                case "QuestionWallHit":
-                    // Trigger Hard Question
-                    if (result.question) {
-                        setCurrentQuestion(result.question);
-                        setModalOpen(true);
-                        setMessage("It's a Trap! Answer to pass.");
-                    }
-                    break;
-                case "Win":
-                    setMessage("You Won!");
-                    break;
-                default:
-                    // Just moved
-                    break;
-            }
-
-        } catch (err) {
-            console.error("Move error:", err);
+    // Handle Movement (WebSocket)
+    const handleMove = useCallback((direction) => {
+        if (!gameState || gameState.status !== 'ACTIVE') return;
+        
+        if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+            const msg = {
+                type: "move",
+                direction: direction
+            };
+            socketRef.current.send(JSON.stringify(msg));
         }
-    }, [gameState, modalOpen]);
-
-    // Handle Answer
-    const handleAnswer = async (answer) => {
-        if (!gameState || !currentQuestion) return;
-
-        try {
-            const result = await answerQuestion(gameState.id, currentQuestion.id, answer);
-            
-            if (result.correct) {
-                setMessage("Correct!");
-                setTimeout(() => setMessage(""), 1000);
-                setModalOpen(false);
-                setCurrentQuestion(null);
-                // Update state
-                if (result.game_state) {
-                    setGameState(result.game_state);
-                }
-            } else {
-                setMessage("Wrong! Lost a life.");
-                // Update state to show reduced life
-                if (result.game_state) {
-                    setGameState(result.game_state);
-                }
-                // Close modal if life > 0? Or keep trying? 
-                // Usually maze games might just subtract life and keep you there or move you back.
-                // For now, let's close modal.
-                setModalOpen(false);
-                setCurrentQuestion(null);
-            }
-
-        } catch (err) {
-            console.error(err);
-        }
-    };
+    }, [gameState]);
 
     // Keyboard Listeners
     useEffect(() => {
         const onKeyDown = (e) => {
+            // Only capture if game is active
+            if (!gameState) return;
+
             switch(e.key) {
                 case "ArrowUp": handleMove("UP"); break;
                 case "ArrowDown": handleMove("DOWN"); break;
@@ -133,7 +121,16 @@ export const useGame = () => {
         };
         window.addEventListener('keydown', onKeyDown);
         return () => window.removeEventListener('keydown', onKeyDown);
-    }, [handleMove]);
+    }, [handleMove, gameState]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.close();
+            }
+        };
+    }, []);
 
     return {
         gameState,
@@ -141,9 +138,6 @@ export const useGame = () => {
         error,
         initGame,
         handleMove,
-        handleAnswer,
-        modalOpen,
-        currentQuestion,
         message
     };
 };
