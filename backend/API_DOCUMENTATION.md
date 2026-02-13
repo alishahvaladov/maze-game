@@ -3,7 +3,7 @@
 ## Base URL
 `http://localhost:3000`
 
-## Endpoints
+## HTTP Endpoints
 
 ### 1. Start New Game
 **POST** `/api/game/start`
@@ -13,35 +13,16 @@ Initializes a new game session with a generated maze.
 **Request Body:**
 ```json
 {
-  "board": {
-    "size": 8
-  }
+  "rows": 20,
+  "cols": 20
 }
 ```
-*Note: The current implementation implicitly expects the size nested inside a `board` object because it reuses the `GameState` struct for decoding.*
 
-### 2. Move Player
-**POST** `/api/game/{id}/move`
+**Response:**
+Returns the initial `GameState` object, including the `id` required for WebSocket connection.
 
-Moves the player in a specified direction.
-
-**Request Body:**
-```json
-{
-  "direction": "UP"
-}
-```
-*Values: "UP", "DOWN", "LEFT", "RIGHT"*
-
-**Response Example:**
-```json
-{
-  "result": "Moved"
-}
-```
-*Possible values for "result": "Moved", "Invalid Move", "Blocked", "QuestionFound", "QuestionWallHit", "Win"*
-
-### 3. Answer Question
+### 2. Answer Question
+*(Note: Question mechanics are currently disabled in standard gameplay, but endpoint remains for compatibility if needed)*
 **POST** `/api/game/{id}/answer`
 
 Submits an answer to a question.
@@ -50,14 +31,53 @@ Submits an answer to a question.
 ```json
 {
   "question_id": 1,
-  "answer": "Paris"
+  "answer": "London"
 }
 ```
 
-**Response Example:**
-```json
-{
-  "correct": true,
-  "game_state": { ... }
-}
-```
+---
+
+## WebSocket Endpoints
+
+### 1. Game Implementation (Movement)
+**URL** `/ws?id={GAME_ID}`
+
+Connects to the game session for real-time updates.
+
+**Client -> Server Messages:**
+
+1. **Move Player**
+   ```json
+   {
+     "type": "move",
+     "direction": "UP"
+   }
+   ```
+   *Values: "UP", "DOWN", "LEFT", "RIGHT"*
+
+**Server -> Client Messages:**
+
+1. **Game Update**
+   ```json
+   {
+     "type": "update",
+     "payload": {
+       "result": "Moved",
+       "player": {
+         "current_pos": { "x": 1, "y": 2 },
+         "lives": 3,
+         "score": 0
+       },
+       "status": "ACTIVE"
+     }
+   }
+   ```
+   *Possible results: "Moved", "Blocked", "Win"*
+
+2. **Error**
+   ```json
+   {
+     "type": "error",
+     "payload": "Game not found"
+   }
+   ```
