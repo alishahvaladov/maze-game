@@ -1,0 +1,119 @@
+.cell {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 4px;
+    transition: background-color 0.3s ease, transform 0.2s;
+    position: relative;
+    font-size: 1.2rem;
+}
+
+.cell.wall {
+    background-color: #2b1d38; /* Deep Purple Wall */
+    background-image: 
+        linear-gradient(335deg, rgba(0,0,0,0.3) 23px, transparent 23px),
+        linear-gradient(155deg, rgba(0,0,0,0.3) 23px, transparent 23px),
+        linear-gradient(335deg, rgba(0,0,0,0.3) 23px, transparent 23px),
+        linear-gradient(155deg, rgba(0,0,0,0.3) 23px, transparent 23px);
+    background-size: 58px 58px;
+    background-position: 0px 2px, 4px 35px, 29px 31px, 34px 6px;
+    border: 1px solid #4a3b5c;
+    box-shadow: inset 0 0 10px #000;
+}
+
+.cell.beyond {
+    background-color: rgba(20, 20, 30, 0.8);
+    border: 1px solid rgba(88, 166, 255, 0.2);
+    box-shadow: 0 0 8px rgba(88, 166, 255, 0.1);
+    animation: pulse-glow 3s infinite alternate;
+}
+
+@keyframes pulse-glow {
+    from { 
+        box-shadow: 0 0 5px rgba(88, 166, 255, 0.1);
+        background-color: rgba(20, 20, 30, 0.8);
+    }
+    to { 
+        box-shadow: 0 0 15px rgba(88, 166, 255, 0.3);
+        background-color: rgba(30, 30, 45, 0.9);
+    }
+}
+
+/* Question Wall - Distinct Design */
+/* Question Wall - Distinct Design - looks like a GATE */
+.wall-question {
+    background-color: rgba(47, 129, 247, 0.3); /* Transparent Blue */
+    background-image: repeating-linear-gradient(
+        90deg,
+        var(--primary-color),
+        var(--primary-color) 4px,
+        transparent 4px,
+        transparent 20px
+    );
+    border: 3px solid var(--primary-color);
+    box-shadow: 0 0 15px var(--primary-color);
+    z-index: 5;
+    animation: glow 2s infinite alternate;
+}
+
+.wall-question:after {
+    content: "🔒";
+    font-size: 1.4rem;
+    text-shadow: 0 0 5px #000;
+}
+
+@keyframes glow {
+    from { box-shadow: 0 0 5px var(--primary-color); }
+    to { box-shadow: 0 0 20px var(--primary-color); }
+}
+
+.cell.path {
+    background-color: #1a1a1a;
+    border: 1px solid #222;
+}
+
+.cell.start {
+    background-color: rgba(63, 185, 80, 0.2);
+    border: 2px solid var(--accent-color);
+}
+
+.cell.end {
+    background-color: rgba(47, 129, 247, 0.2);
+    border: 2px solid var(--primary-color);
+}
+
+.player-token {
+    width: 24px;
+    height: 24px;
+    background-color: var(--player-color);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--player-color);
+    animation: pulse 1.5s infinite;
+    z-index: 10;
+}
+
+.question-marker {
+    color: #ffd700; /* Gold */
+    font-weight: bold;
+    animation: bounce 2s infinite;
+    text-shadow: 0 0 5px #ffd700;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(163, 113, 247, 0.7); }
+    70% { transform: scale(1.0); box-shadow: 0 0 0 10px rgba(163, 113, 247, 0); }
+    100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(163, 113, 247, 0); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+.cell.fog {
+    background-color: #000;
+    border: none;
+    box-shadow: none;
+}

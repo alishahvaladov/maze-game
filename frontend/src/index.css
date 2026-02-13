@@ -1,0 +1,113 @@
+:root {
+  --bg-color: #0d1117;
+  --text-color: #c9d1d9;
+  --primary-color: #2f81f7; /* Blue */
+  --accent-color: #3fb950;  /* Green for Path/Start */
+  --danger-color: #f85149;  /* Red for Lives/Wrong */
+  --wall-color: #30363d;
+  --path-color: #161b22;
+  --player-color: #a371f7;  /* Purple */
+  --modal-bg: rgba(22, 27, 34, 0.95);/* HUD Overlay */
+  --font-family: 'Courier New', Courier, monospace; /* Retro feel */
+}
+
+.hud-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* Let clicks pass through to game */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 10;
+}
+
+.hud-header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    text-shadow: 2px 2px 4px #000;
+}
+.hud-header p {
+    margin: 0;
+    opacity: 0.8;
+    text-shadow: 1px 1px 2px #000;
+}
+
+.hud-status {
+    align-self: flex-end; /* Put status at bottom or top right? Let's keep flow natural */
+    /* GameStatus component might need updates to look good overlayed */
+    background: rgba(0,0,0,0.5);
+    padding: 10px;
+    border-radius: 8px;
+    backdrop-filter: blur(5px);
+}
+
+.game-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-over-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0,0,0,0.9);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    z-index: 20;
+    pointer-events: auto;
+    border: 2px solid #58a6ff;
+}
+
+.board-wrapper {
+    /* Ensure board is centered */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-family);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+button {
+  cursor: pointer;
+  background: var(--primary-color);
+  border: none;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-family: inherit;
+  font-weight: bold;
+  transition: opacity 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+.container {
+  text-align: center;
+  max-width: 800px;
+  width: 100%;
+  padding: 20px;
+}

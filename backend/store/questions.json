@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "text": "What is the capital of France?",
+    "options": ["London", "Berlin", "Paris", "Madrid"],
+    "correct_ans": "Paris",
+    "difficulty": "easy"
+  },
+  {
+    "id": 2,
+    "text": "What is 5 + 7?",
+    "options": ["10", "11", "12", "13"],
+    "correct_ans": "12",
+    "difficulty": "easy"
+  },
+  {
+    "id": 3,
+    "text": "Which keyword is used to start a goroutine in Go?",
+    "options": ["run", "thread", "go", "start"],
+    "correct_ans": "go",
+    "difficulty": "medium"
+  },
+  {
+    "id": 4,
+    "text": "How do you define an interface in Go?",
+    "options": ["class", "interface", "struct", "impl"],
+    "correct_ans": "interface",
+    "difficulty": "medium"
+  },
+  {
+    "id": 5,
+    "text": "What is the complexity of binary search?",
+    "options": ["O(n)", "O(log n)", "O(n^2)", "O(1)"],
+    "correct_ans": "O(log n)",
+    "difficulty": "hard"
+  }
+]

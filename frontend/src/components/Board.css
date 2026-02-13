@@ -1,0 +1,25 @@
+.board-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: #0d1117; /* Match body bg for seamless look or slightly different */
+}
+
+/* 
+  Grid layout is handled inline in Board.jsx for dynamic sizing,
+  but we can add responsive tweaks here if needed.
+*/
+@media (max-width: 600px) {
+    .board-container {
+        padding: 5px;
+    }
+}
+
+.board {
+    display: grid;
+    /* grid-template-columns and rows are set inline */
+    gap: 0;
+    margin: 0 auto;
+    background: #000;
+}
